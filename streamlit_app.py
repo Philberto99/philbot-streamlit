@@ -1,11 +1,14 @@
 import streamlit as st
 import requests
 import os
-from dotenv import load_dotenv
 
-# 🔐 Load environment variables
-load_dotenv()
-SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+# 🔐 Load API key from secrets (cloud) or .env (local)
+if "SERPAPI_KEY" in st.secrets:
+    SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
+else:
+    from dotenv import load_dotenv
+    load_dotenv()
+    SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 
 # 🦞 UI setup
 st.set_page_config(page_title="PhilBot 🦞", layout="centered")
