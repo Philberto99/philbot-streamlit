@@ -20,17 +20,19 @@ st.markdown("""
 
         html, body {
             background-color: #001f3f;
-            color: white;
         }
         h1 {
             font-family: 'Orbitron', sans-serif;
             color: #00aced;
         }
-        .stTextArea textarea {
-            background-color: #ffffff;
-            color: black;
-            height: 300px !important;
+        .response-box {
+            background-color: #003366;
+            color: white;
+            padding: 1em;
+            border-radius: 8px;
+            max-height: 500px;
             overflow-y: auto;
+            white-space: pre-wrap;
         }
         .footer {
             text-align: center;
@@ -45,35 +47,43 @@ st.markdown("""
 st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
-# 🧠 Input box with expandable response area
+# 🧠 Input box
 query = st.text_input("Ask PhilBot")
 
-response_text = ""
+# 📦 Session state to store cumulative responses
+if "response_log" not in st.session_state:
+    st.session_state.response_log = ""
 
-if query and SERPAPI_KEY:
-    params = {
-        "q": query,
-        "api_key": SERPAPI_KEY,
-        "engine": "google",
-    }
+if query:
+    if SERPAPI_KEY:
+        params = {
+            "q": query,
+            "api_key": SERPAPI_KEY,
+            "engine": "google",
+        }
 
-    response = requests.get("https://serpapi.com/search", params=params)
-    data = response.json()
+        response = requests.get("https://serpapi.com/search", params=params)
+        data = response.json()
 
-    if "organic_results" in data:
-        response_text += f"**You asked:** {query}\n\n"
-        response_text += "### Top Search Results:\n"
-        for result in data["organic_results"][:3]:
-            response_text += f"- [{result['title']}]({result['link']})\n"
-        response_text += "\nPhilBot is ready for your next question 🔍"
+        if "organic_results" in data:
+            new_response = f"**You asked:** {query}\n\n"
+            new_response += "### Top Search Results:\n"
+            for result in data["organic_results"][:3]:
+                new_response += f"- [{result['title']}]({result['link']})\n"
+            new_response += "\nPhilBot is ready for your next question 🔍\n\n"
+        else:
+            new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
     else:
-        response_text = "No results found or API limit reached."
-elif query and not SERPAPI_KEY:
-    response_text = "API key not found. Please set SERPAPI_KEY in secrets or .env."
+        new_response = f"**You asked:** {query}\n\nAPI key not found. Please set SERPAPI_KEY in secrets or .env.\n\n"
 
-# 🖋️ Display response inside a scrollable text area
-if response_text:
-    st.text_area("PhilBot's Response", value=response_text, height=300)
+    # Append to response log
+    st.session_state.response_log += new_response
+
+# 🖋️ Display cumulative responses
+if st.session_state.response_log:
+    st.markdown('<div class="response-box">', unsafe_allow_html=True)
+    st.markdown(st.session_state.response_log, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # 📊 Check SerpAPI usage
 if SERPAPI_KEY:
@@ -90,4 +100,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.003</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.004</div>', unsafe_allow_html=True)
