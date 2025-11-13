@@ -52,6 +52,8 @@ st.markdown("""
             max-height: 500px;
             overflow-y: auto;
             white-space: pre-wrap;
+            font-size: 1.05em;
+            line-height: 1.6em;
         }
 
         .searches-left {
@@ -127,4 +129,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.005</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.006</div>', unsafe_allow_html=True)
