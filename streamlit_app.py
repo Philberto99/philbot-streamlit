@@ -24,7 +24,7 @@ st.markdown("""
 
         h1 {
             font-family: 'Orbitron', sans-serif;
-            color: #00aced;
+            color: #f5f5dc !important;
         }
 
         .stTextInput input:focus, .stTextArea textarea:focus {
@@ -35,16 +35,30 @@ st.markdown("""
 
         .stTextInput input, .stTextArea textarea {
             border: none !important;
+            background-color: #001f3f !important;
+            color: #ffffff !important;
+        }
+
+        .stTextInput > div > div {
+            background-color: transparent !important;
+            box-shadow: none !important;
         }
 
         .response-box {
-            background-color: #003366;
-            color: white;
+            background-color: transparent !important;
+            color: #f8f8f2 !important;
             padding: 1em;
             border-radius: 8px;
             max-height: 500px;
             overflow-y: auto;
             white-space: pre-wrap;
+        }
+
+        .searches-left {
+            color: #ffff00 !important;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 1em;
         }
 
         .footer {
@@ -108,9 +122,9 @@ if SERPAPI_KEY:
     if usage_response.status_code == 200:
         usage_data = usage_response.json()
         searches_left = usage_data.get("plan_searches_left", "N/A")
-        st.markdown(f"🔍 Searches left this month: **{searches_left}**")
+        st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
     else:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.004</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.005</div>', unsafe_allow_html=True)
