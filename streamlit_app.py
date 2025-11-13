@@ -13,27 +13,39 @@ else:
     except ImportError:
         SERPAPI_KEY = None
 
-# 🖌️ Custom CSS for dark blue background and input styling
+# 🎨 Custom styling
 st.markdown("""
     <style>
-        body {
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+        html, body {
             background-color: #001f3f;
             color: white;
         }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00aced;
+        }
         .stTextInput > div > div > input {
+            background-color: #ffffff;
+            color: black;
+        }
+        .response-box {
             background-color: #003366;
-            color: white;
+            padding: 1em;
+            border-radius: 8px;
+            margin-top: 1em;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 2em;
         }
         .arrow-icon {
             font-size: 1.5em;
             margin-left: 10px;
             vertical-align: middle;
-        }
-        footer {
-            text-align: center;
-            font-size: 0.9em;
-            color: #ccc;
-            margin-top: 2em;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -42,12 +54,12 @@ st.markdown("""
 st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
-# 🧠 Input box with dynamic arrow icon
-query = st.text_input("Ask PhilBot", key="query_input")
+# 🧠 Input box
+query = st.text_input("Ask PhilBot")
 
 if query:
     st.markdown("### Echoing your query with semantic clarity...")
-    st.write(f"You asked: {query}")
+    st.markdown(f"**You asked:** {query}")
     st.markdown('<span class="arrow-icon">➡️</span>', unsafe_allow_html=True)
 
     if SERPAPI_KEY:
@@ -61,9 +73,12 @@ if query:
         data = response.json()
 
         if "organic_results" in data:
+            st.markdown('<div class="response-box">', unsafe_allow_html=True)
             st.markdown("### Top Search Results:")
             for result in data["organic_results"][:3]:
                 st.markdown(f"- [{result['title']}]({result['link']})")
+            st.markdown("PhilBot is ready for your next question 🦞")
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.warning("No results found or API limit reached.")
     else:
@@ -84,4 +99,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown("<footer>Development version 1.001</footer>", unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.002</div>', unsafe_allow_html=True)
