@@ -27,6 +27,11 @@ st.markdown("""
             color: #f5f5dc !important;
         }
 
+        label[for="Ask PhilBot"] {
+            color: #f8f8f2 !important;
+            font-weight: bold !important;
+        }
+
         .stTextInput input:focus, .stTextArea textarea:focus {
             border: none !important;
             box-shadow: none !important;
@@ -52,8 +57,8 @@ st.markdown("""
             max-height: 500px;
             overflow-y: auto;
             white-space: pre-wrap;
-            font-size: 1.05em;
-            line-height: 1.6em;
+            font-size: 1.1em;
+            line-height: 1.7em;
         }
 
         .searches-left {
@@ -77,7 +82,7 @@ st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
 # 🧠 Input box
-query = st.text_input("Ask PhilBot")
+query = st.text_input("Ask PhilBot", label_visibility="visible")
 
 # 📦 Session state to store cumulative responses
 if "response_log" not in st.session_state:
@@ -129,4 +134,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.006</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.007</div>', unsafe_allow_html=True)
