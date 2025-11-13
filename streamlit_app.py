@@ -13,18 +13,30 @@ else:
     except ImportError:
         SERPAPI_KEY = None
 
-# 🎨 Custom styling
+# 🎨 Aggressive CSS styling
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
 
-        html, body {
-            background-color: #001f3f;
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
+            background-color: #001f3f !important;
         }
+
         h1 {
             font-family: 'Orbitron', sans-serif;
             color: #00aced;
         }
+
+        .stTextInput input:focus, .stTextArea textarea:focus {
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .stTextInput input, .stTextArea textarea {
+            border: none !important;
+        }
+
         .response-box {
             background-color: #003366;
             color: white;
@@ -34,6 +46,7 @@ st.markdown("""
             overflow-y: auto;
             white-space: pre-wrap;
         }
+
         .footer {
             text-align: center;
             font-size: 0.9em;
