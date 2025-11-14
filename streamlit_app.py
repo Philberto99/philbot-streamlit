@@ -72,7 +72,8 @@ if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
 # 🧠 Input box with hidden label
-query = st.text_input("Query", placeholder="Ask PhilBot…", key="query_capture", label_visibility="collapsed").strip()
+user_input = st.text_input("Query", placeholder="Ask PhilBot…", key="query_input", label_visibility="collapsed")
+query = user_input.strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
@@ -134,6 +135,7 @@ if query:
             new_response = f"**You asked:** {query}\n\n🌍 Location not available. Please try again later.\n\n"
 
     else:
+        # 🧠 GPT-4o response
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
                 completion = client.chat.completions.create(
@@ -150,25 +152,27 @@ if query:
             except Exception as e:
                 new_response = f"**You asked:** {query}\n\nGPT-4o failed: {str(e)}\n\n"
 
+        # 🔁 Fallback to SERPAPI (isolated)
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
+            fallback_query = query
             params = {
-                "q": query,
+                "q": fallback_query,
                 "api_key": SERPAPI_KEY,
                 "engine": "google",
             }
             response = requests.get("https://serpapi.com/search", params=params)
             data = response.json()
             if "organic_results" in data:
-                new_response = f"**You asked:** {query}\n\nThis is a SERPAPI response:\n\n"
+                fallback_response = f"**You asked:** {fallback_query}\n\nThis is a SERPAPI response:\n\n"
                 for result in data["organic_results"][:3]:
-                    new_response += f"- [{result['title']}]({result['link']})\n"
-                new_response += "\nPhilBot is ready for your next question 🔍\n\n"
+                    fallback_response += f"- [{result['title']}]({result['link']})\n"
+                fallback_response += "\nPhilBot is ready for your next question 🔍\n\n"
+                new_response = fallback_response
             else:
-                new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
+                new_response = f"**You asked:** {fallback_query}\n\nNo results found or API limit reached.\n\n"
 
     st.session_state.response_log.insert(0, new_response)
-    st.session_state.query_capture = ""
     st.session_state.used_serpapi = used_serpapi
     st.experimental_rerun()
 
@@ -187,4 +191,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.022 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.023 🍀</div>', unsafe_allow_html=True)
