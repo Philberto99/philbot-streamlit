@@ -157,4 +157,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.009</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.010</div>', unsafe_allow_html=True)
