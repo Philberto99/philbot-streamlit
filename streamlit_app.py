@@ -72,8 +72,7 @@ if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
 # 🧠 Input box with placeholder
-st.text_input("", placeholder="Ask PhilBot…", key="query_input")
-query = st.session_state.get("query_input", "").strip()
+query = st.text_input("", placeholder="Ask PhilBot…", key="query_input").strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
@@ -135,7 +134,6 @@ if query:
             new_response = f"**You asked:** {query}\n\n🌍 Location not available. Please try again later.\n\n"
 
     else:
-        # 🧠 GPT-4o response
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
                 completion = client.chat.completions.create(
@@ -152,7 +150,6 @@ if query:
             except Exception as e:
                 new_response = f"**You asked:** {query}\n\nGPT-4o failed: {str(e)}\n\n"
 
-        # 🔁 Fallback to SERPAPI
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
             params = {
@@ -170,13 +167,9 @@ if query:
             else:
                 new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
 
-    # 📜 Prepend to response log
     st.session_state.response_log.insert(0, new_response)
-
-    # 🧼 Clear input and rerun
-    if "query_input" in st.session_state:
-        st.session_state.query_input = ""
     st.session_state.used_serpapi = used_serpapi
+    st.session_state["query_input"] = ""
     st.experimental_rerun()
 
 # 🖋️ Display responses (latest first)
@@ -194,4 +187,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.018</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.019</div>', unsafe_allow_html=True)
