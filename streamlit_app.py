@@ -68,7 +68,7 @@ st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
 # 📦 Session state
-if "response_log" not in st.session_state:
+if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
 # 🧠 Input box
