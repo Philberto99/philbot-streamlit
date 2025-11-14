@@ -72,9 +72,12 @@ if "response_log" not in st.session_state:
     st.session_state.response_log = []
 if "should_rerun" not in st.session_state:
     st.session_state.should_rerun = False
+if "input_version" not in st.session_state:
+    st.session_state.input_version = 0
 
-# 🧠 Input box with hidden label
-user_input = st.text_input("Query", placeholder="Ask PhilBot…", key="query_input", label_visibility="collapsed")
+# 🧠 Input box with dynamic key
+input_key = f"query_input_{st.session_state.input_version}"
+user_input = st.text_input("Query", placeholder="Ask PhilBot…", key=input_key, label_visibility="collapsed")
 query = user_input.strip()
 
 # 🧠 Fuzzy override matcher
@@ -175,6 +178,7 @@ if query and not st.session_state.should_rerun:
     st.session_state.response_log.insert(0, new_response)
     st.session_state.used_serpapi = used_serpapi
     st.session_state.should_rerun = True
+    st.session_state.input_version += 1
     st.rerun()
 
 # 🖋️ Display responses (latest first)
@@ -192,4 +196,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.025 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.026 🍀</div>', unsafe_allow_html=True)
