@@ -105,6 +105,7 @@ def get_weather(lat, lon, city="your location"):
 # 🧠 Response logic
 if query:
     new_response = ""
+    used_serpapi = False
 
     # 🔁 Override commands
     if query.strip().lower() == "#what time is it?":
@@ -138,6 +139,7 @@ if query:
 
         # 🔁 Fallback to SERPAPI
         if not new_response and SERPAPI_KEY:
+            used_serpapi = True
             params = {
                 "q": query,
                 "api_key": SERPAPI_KEY,
@@ -156,8 +158,10 @@ if query:
     # 📜 Prepend to response log
     st.session_state.response_log.insert(0, new_response)
 
-    # 🧼 Clear input box
+    # 🧼 Clear input box and rerun
     st.session_state.query_input = ""
+    st.session_state.used_serpapi = used_serpapi
+    st.experimental_rerun()
 
 # 🖋️ Display responses (latest first)
 for entry in st.session_state.response_log:
@@ -165,15 +169,13 @@ for entry in st.session_state.response_log:
     st.markdown(entry, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 📊 SerpAPI usage
-if SERPAPI_KEY:
+# 📊 Show SerpAPI usage only if fallback was used
+if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
     usage_response = requests.get("https://serpapi.com/account", params={"api_key": SERPAPI_KEY})
     if usage_response.status_code == 200:
         usage_data = usage_response.json()
         searches_left = usage_data.get("plan_searches_left", "N/A")
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
-    else:
-        st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.014</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.015</div>', unsafe_allow_html=True)
