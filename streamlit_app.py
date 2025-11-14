@@ -78,7 +78,13 @@ if "input_version" not in st.session_state:
 # 🧠 Input box with dynamic key
 input_key = f"query_input_{st.session_state.input_version}"
 user_input = st.text_input("Query", placeholder="Ask PhilBot…", key=input_key, label_visibility="collapsed")
-query = user_input.strip()
+
+# 🧠 Clear query after rerun
+if st.session_state.should_rerun:
+    st.session_state.should_rerun = False
+    query = ""
+else:
+    query = user_input.strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
@@ -124,7 +130,7 @@ def get_weather(lat, lon, city="your location"):
         return f"Weather API failed: {str(e)}"
 
 # 🧠 Response logic
-if query and not st.session_state.should_rerun:
+if query:
     new_response = ""
     used_serpapi = False
 
@@ -177,8 +183,8 @@ if query and not st.session_state.should_rerun:
 
     st.session_state.response_log.insert(0, new_response)
     st.session_state.used_serpapi = used_serpapi
-    st.session_state.should_rerun = True
     st.session_state.input_version += 1
+    st.session_state.should_rerun = True
     st.rerun()
 
 # 🖋️ Display responses (latest first)
@@ -196,4 +202,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.026 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.027 🍀</div>', unsafe_allow_html=True)
