@@ -14,12 +14,16 @@ else:
     except ImportError:
         SERPAPI_KEY = None
 
+# 🔐 Load Azure OpenAI credentials from .env
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
 
-# 🔧 Configure Azure OpenAI
+# 🔧 Configure Azure OpenAI client
 openai.api_type = "azure"
-openai.api_base = "https://philbot251114instance.cognitiveservices.azure.com/"
-openai.api_version = "2025-01-01-preview"
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = AZURE_OPENAI_API_VERSION
 openai.api_key = AZURE_OPENAI_KEY
 
 # 🎨 Aggressive CSS styling
@@ -83,17 +87,20 @@ st.title("PhilBot 🔍🦞")
 
 # 🧠 Input box
 query = st.text_input("Ask PhilBot", label_visibility="visible")
-use_gpt = st.checkbox("Use GPT-4o instead of SerpAPI", value=True)
 
 # 📦 Session state to store cumulative responses
 if "response_log" not in st.session_state:
     st.session_state.response_log = ""
 
+# 🧠 Response logic
 if query:
-    if use_gpt and AZURE_OPENAI_KEY:
+    new_response = ""
+
+    # 🧠 Try GPT-4o first
+    if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
         try:
             completion = openai.ChatCompletion.create(
-                deployment_id="Philbot-gpt-4o",
+                deployment_id=AZURE_OPENAI_DEPLOYMENT,
                 messages=[
                     {"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."},
                     {"role": "user", "content": query}
@@ -102,10 +109,12 @@ if query:
                 max_tokens=500
             )
             gpt_response = completion.choices[0].message.content
-            new_response = f"**You asked:** {query}\n\n{gpt_response}\n\nPhilBot is ready for your next question 🔍\n\n"
+            new_response = f"**You asked:** {query}\n\nThis is a gpt-4o response: {gpt_response}\n\nPhilBot is ready for your next question 🔍\n\n"
         except Exception as e:
-            new_response = f"**You asked:** {query}\n\nError from GPT-4o: {str(e)}\n\n"
-    elif SERPAPI_KEY:
+            new_response = f"**You asked:** {query}\n\nGPT-4o failed: {str(e)}\n\n"
+
+    # 🔁 Fallback to SERPAPI if GPT-4o fails or isn't configured
+    if not new_response and SERPAPI_KEY:
         params = {
             "q": query,
             "api_key": SERPAPI_KEY,
@@ -114,17 +123,18 @@ if query:
         response = requests.get("https://serpapi.com/search", params=params)
         data = response.json()
         if "organic_results" in data:
-            new_response = f"**You asked:** {query}\n\n"
-            new_response += "### Top Search Results:\n"
+            new_response = f"**You asked:** {query}\n\nThis is a SERPAPI response:\n\n"
             for result in data["organic_results"][:3]:
                 new_response += f"- [{result['title']}]({result['link']})\n"
             new_response += "\nPhilBot is ready for your next question 🔍\n\n"
         else:
             new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
-    else:
-        new_response = f"**You asked:** {query}\n\nNo valid API key found for GPT-4o or SerpAPI.\n\n"
 
-    # Append to response log
+    # 🚫 No valid response from either engine
+    if not new_response:
+        new_response = f"**You asked:** {query}\n\nNo valid response from GPT-4o or SERPAPI.\n\n"
+
+    # 📜 Append to response log
     st.session_state.response_log += new_response
 
 # 🖋️ Display cumulative responses
@@ -147,4 +157,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.008</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.009</div>', unsafe_allow_html=True)
