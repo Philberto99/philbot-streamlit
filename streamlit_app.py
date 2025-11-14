@@ -71,9 +71,8 @@ st.title("PhilBot 🔍🦞")
 if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
-# 🧠 Input box with placeholder and hidden label
-st.text_input("Query", placeholder="Ask PhilBot…", key="query_input", label_visibility="collapsed")
-query = st.session_state.get("query_input", "").strip()
+# 🧠 Input box with hidden label
+query = st.text_input("Query", placeholder="Ask PhilBot…", key="query_capture", label_visibility="collapsed").strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
@@ -169,7 +168,7 @@ if query:
                 new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
 
     st.session_state.response_log.insert(0, new_response)
-    st.session_state.query_input = ""
+    st.session_state.query_capture = ""
     st.session_state.used_serpapi = used_serpapi
     st.experimental_rerun()
 
@@ -188,4 +187,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.021 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.022 🍀</div>', unsafe_allow_html=True)
