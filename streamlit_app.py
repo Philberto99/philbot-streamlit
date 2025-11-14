@@ -72,18 +72,19 @@ if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
 # 🧠 Input box with placeholder
-query = st.text_input("", placeholder="Ask PhilBot…", key="temp_query")
+st.text_input("", placeholder="Ask PhilBot…", key="query_input")
+query = st.session_state.get("query_input", "").strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
-    q = q.strip().lower()
+    q = q.lower()
     return any(phrase in q for phrase in [
         "#what time is it", "#what's the time", "#what is my time",
         "#tell me the time", "#current time", "#time now"
     ])
 
 def is_weather_override(q):
-    q = q.strip().lower()
+    q = q.lower()
     return any(phrase in q for phrase in [
         "#what is my weather like", "#what's the weather", "#weather now",
         "#current weather", "#how's the weather", "#weather in my area"
@@ -173,7 +174,8 @@ if query:
     st.session_state.response_log.insert(0, new_response)
 
     # 🧼 Clear input and rerun
-    st.session_state.temp_query = ""
+    if "query_input" in st.session_state:
+        st.session_state.query_input = ""
     st.session_state.used_serpapi = used_serpapi
     st.experimental_rerun()
 
@@ -192,4 +194,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.016</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.018</div>', unsafe_allow_html=True)
