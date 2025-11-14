@@ -68,8 +68,10 @@ st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
 # 📦 Session state
-if not isinstance(st.session_state.get("response_log", None), list):
+if "response_log" not in st.session_state:
     st.session_state.response_log = []
+if "should_rerun" not in st.session_state:
+    st.session_state.should_rerun = False
 
 # 🧠 Input box with hidden label
 user_input = st.text_input("Query", placeholder="Ask PhilBot…", key="query_input", label_visibility="collapsed")
@@ -119,7 +121,7 @@ def get_weather(lat, lon, city="your location"):
         return f"Weather API failed: {str(e)}"
 
 # 🧠 Response logic
-if query:
+if query and not st.session_state.should_rerun:
     new_response = ""
     used_serpapi = False
 
@@ -135,7 +137,6 @@ if query:
             new_response = f"**You asked:** {query}\n\n🌍 Location not available. Please try again later.\n\n"
 
     else:
-        # 🧠 GPT-4o response
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
                 completion = client.chat.completions.create(
@@ -152,7 +153,6 @@ if query:
             except Exception as e:
                 new_response = f"**You asked:** {query}\n\nGPT-4o failed: {str(e)}\n\n"
 
-        # 🔁 Fallback to SERPAPI (isolated)
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
             fallback_query = query
@@ -174,6 +174,7 @@ if query:
 
     st.session_state.response_log.insert(0, new_response)
     st.session_state.used_serpapi = used_serpapi
+    st.session_state.should_rerun = True
     st.rerun()
 
 # 🖋️ Display responses (latest first)
@@ -191,4 +192,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.024 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.025 🍀</div>', unsafe_allow_html=True)
