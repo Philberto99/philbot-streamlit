@@ -71,8 +71,8 @@ st.title("PhilBot 🔍🦞")
 if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
-# 🧠 Input box
-query = st.text_input("Ask PhilBot", label_visibility="visible")
+# 🧠 Input box with placeholder
+query = st.text_input("", placeholder="Ask PhilBot…", key="query_input")
 
 # ⏱️ Override: time
 def get_current_time():
@@ -84,7 +84,7 @@ def get_ip_location():
     try:
         response = requests.get("http://ip-api.com/json/")
         data = response.json()
-        return data["city"], data["lat"], data["lon"]
+        return data.get("city", "your location"), data.get("lat"), data.get("lon")
     except:
         return None, None, None
 
@@ -93,9 +93,12 @@ def get_weather(lat, lon, city="your location"):
         url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={WEATHER_API_KEY}"
         response = requests.get(url)
         data = response.json()
-        temp = data["main"]["temp"]
-        desc = data["weather"][0]["description"]
-        return f"🌦️ Weather in {city}: {temp}°C, {desc}"
+        if "main" in data and "weather" in data:
+            temp = data["main"]["temp"]
+            desc = data["weather"][0]["description"]
+            return f"🌦️ Weather in {city}: {temp}°C, {desc}"
+        else:
+            return "Weather data not available at the moment."
     except Exception as e:
         return f"Weather API failed: {str(e)}"
 
@@ -105,14 +108,15 @@ if query:
 
     # 🔁 Override commands
     if query.strip().lower() == "#what time is it?":
-        new_response = get_current_time()
+        new_response = f"**You asked:** {query}\n\n{get_current_time()}\n\n"
 
     elif query.strip().lower() == "#what is my weather like?":
         city, lat, lon = get_ip_location()
         if lat and lon:
-            new_response = get_weather(lat, lon, city)
+            weather = get_weather(lat, lon, city)
+            new_response = f"**You asked:** {query}\n\n{weather}\n\n"
         else:
-            new_response = "🌍 Location not available. Please try again later."
+            new_response = f"**You asked:** {query}\n\n🌍 Location not available. Please try again later.\n\n"
 
     else:
         # 🧠 GPT-4o response
@@ -152,6 +156,9 @@ if query:
     # 📜 Prepend to response log
     st.session_state.response_log.insert(0, new_response)
 
+    # 🧼 Clear input box
+    st.session_state.query_input = ""
+
 # 🖋️ Display responses (latest first)
 for entry in st.session_state.response_log:
     st.markdown('<div class="response-box">', unsafe_allow_html=True)
@@ -169,4 +176,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.012</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.014</div>', unsafe_allow_html=True)
