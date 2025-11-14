@@ -3,9 +3,8 @@ import requests
 import os
 from datetime import datetime
 from openai import AzureOpenAI
-from streamlit_geolocation import streamlit_geolocation
 
-# 🔐 Load API keys from secrets or .env
+# 🔐 Load API keys
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", os.getenv("SERPAPI_KEY"))
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -68,7 +67,7 @@ input:focus {
 st.set_page_config(page_title="PhilBot 🦞", layout="centered")
 st.title("PhilBot 🔍🦞")
 
-# 📦 Session state for responses
+# 📦 Session state
 if "response_log" not in st.session_state:
     st.session_state.response_log = []
 
@@ -80,15 +79,23 @@ def get_current_time():
     now = datetime.now()
     return now.strftime("🕒 Current system time: %A, %d %B %Y — %H:%M:%S")
 
-# 🌦️ Override: weather
-def get_weather(lat, lon):
+# 🌍 Override: IP-based weather
+def get_ip_location():
+    try:
+        response = requests.get("http://ip-api.com/json/")
+        data = response.json()
+        return data["city"], data["lat"], data["lon"]
+    except:
+        return None, None, None
+
+def get_weather(lat, lon, city="your location"):
     try:
         url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={WEATHER_API_KEY}"
         response = requests.get(url)
         data = response.json()
         temp = data["main"]["temp"]
         desc = data["weather"][0]["description"]
-        return f"🌦️ Weather at your location: {temp}°C, {desc}"
+        return f"🌦️ Weather in {city}: {temp}°C, {desc}"
     except Exception as e:
         return f"Weather API failed: {str(e)}"
 
@@ -101,11 +108,11 @@ if query:
         new_response = get_current_time()
 
     elif query.strip().lower() == "#what is my weather like?":
-        location = streamlit_geolocation()
-        if location and "latitude" in location and "longitude" in location:
-            new_response = get_weather(location["latitude"], location["longitude"])
+        city, lat, lon = get_ip_location()
+        if lat and lon:
+            new_response = get_weather(lat, lon, city)
         else:
-            new_response = "🌍 Location not available. Please allow location access."
+            new_response = "🌍 Location not available. Please try again later."
 
     else:
         # 🧠 GPT-4o response
