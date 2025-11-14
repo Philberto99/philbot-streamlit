@@ -174,7 +174,7 @@ if query:
 
     st.session_state.response_log.insert(0, new_response)
     st.session_state.used_serpapi = used_serpapi
-    st.experimental_rerun()
+    st.rerun()
 
 # 🖋️ Display responses (latest first)
 for entry in st.session_state.response_log:
@@ -191,4 +191,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.023 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.024 🍀</div>', unsafe_allow_html=True)
