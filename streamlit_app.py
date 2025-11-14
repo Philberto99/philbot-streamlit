@@ -71,8 +71,9 @@ st.title("PhilBot 🔍🦞")
 if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
-# 🧠 Input box with placeholder
-query = st.text_input("", placeholder="Ask PhilBot…", key="query_input").strip()
+# 🧠 Input box with placeholder and hidden label
+st.text_input("Query", placeholder="Ask PhilBot…", key="query_input", label_visibility="collapsed")
+query = st.session_state.get("query_input", "").strip()
 
 # 🧠 Fuzzy override matcher
 def is_time_override(q):
@@ -187,4 +188,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.020</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.021 🍀</div>', unsafe_allow_html=True)
