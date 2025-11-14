@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import os
-import openai
+from openai import AzureOpenAI
 
 # 🔐 Load API keys from secrets or .env
 if "SERPAPI_KEY" in st.secrets:
@@ -14,17 +14,18 @@ else:
     except ImportError:
         SERPAPI_KEY = None
 
-# 🔐 Load Azure OpenAI credentials from .env
+# 🔐 Load Azure OpenAI credentials
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
 
-# 🔧 Configure Azure OpenAI client
-openai.api_type = "azure"
-openai.api_base = AZURE_OPENAI_ENDPOINT
-openai.api_version = AZURE_OPENAI_API_VERSION
-openai.api_key = AZURE_OPENAI_KEY
+# 🔧 Configure Azure OpenAI client (v1.0+)
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_KEY,
+    api_version=AZURE_OPENAI_API_VERSION,
+    azure_endpoint=AZURE_OPENAI_ENDPOINT
+)
 
 # 🎨 Aggressive CSS styling
 st.markdown("""
@@ -99,8 +100,8 @@ if query:
     # 🧠 Try GPT-4o first
     if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
         try:
-            completion = openai.ChatCompletion.create(
-                deployment_id=AZURE_OPENAI_DEPLOYMENT,
+            completion = client.chat.completions.create(
+                model=AZURE_OPENAI_DEPLOYMENT,
                 messages=[
                     {"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."},
                     {"role": "user", "content": query}
@@ -157,4 +158,4 @@ if SERPAPI_KEY:
         st.warning("Could not retrieve usage info from SerpAPI.")
 
 # 🧾 Footer version tag
-st.markdown('<div class="footer">Development version 1.010</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.011</div>', unsafe_allow_html=True)
