@@ -168,8 +168,8 @@ if query:
                 new_response = f"**You asked:** {query}\n\nNo results found or API limit reached.\n\n"
 
     st.session_state.response_log.insert(0, new_response)
+    st.session_state.query_input = ""
     st.session_state.used_serpapi = used_serpapi
-    st.session_state["query_input"] = ""
     st.experimental_rerun()
 
 # 🖋️ Display responses (latest first)
@@ -187,4 +187,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.019</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.020</div>', unsafe_allow_html=True)
