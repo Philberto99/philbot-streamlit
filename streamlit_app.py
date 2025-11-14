@@ -72,7 +72,22 @@ if not isinstance(st.session_state.get("response_log", None), list):
     st.session_state.response_log = []
 
 # 🧠 Input box with placeholder
-query = st.text_input("", placeholder="Ask PhilBot…", key="query_input")
+query = st.text_input("", placeholder="Ask PhilBot…", key="temp_query")
+
+# 🧠 Fuzzy override matcher
+def is_time_override(q):
+    q = q.strip().lower()
+    return any(phrase in q for phrase in [
+        "#what time is it", "#what's the time", "#what is my time",
+        "#tell me the time", "#current time", "#time now"
+    ])
+
+def is_weather_override(q):
+    q = q.strip().lower()
+    return any(phrase in q for phrase in [
+        "#what is my weather like", "#what's the weather", "#weather now",
+        "#current weather", "#how's the weather", "#weather in my area"
+    ])
 
 # ⏱️ Override: time
 def get_current_time():
@@ -107,11 +122,10 @@ if query:
     new_response = ""
     used_serpapi = False
 
-    # 🔁 Override commands
-    if query.strip().lower() == "#what time is it?":
+    if is_time_override(query):
         new_response = f"**You asked:** {query}\n\n{get_current_time()}\n\n"
 
-    elif query.strip().lower() == "#what is my weather like?":
+    elif is_weather_override(query):
         city, lat, lon = get_ip_location()
         if lat and lon:
             weather = get_weather(lat, lon, city)
@@ -158,8 +172,8 @@ if query:
     # 📜 Prepend to response log
     st.session_state.response_log.insert(0, new_response)
 
-    # 🧼 Clear input box and rerun
-    st.session_state.query_input = ""
+    # 🧼 Clear input and rerun
+    st.session_state.temp_query = ""
     st.session_state.used_serpapi = used_serpapi
     st.experimental_rerun()
 
@@ -178,4 +192,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.015</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.016</div>', unsafe_allow_html=True)
