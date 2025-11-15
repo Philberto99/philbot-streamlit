@@ -74,6 +74,8 @@ if "should_rerun" not in st.session_state:
     st.session_state.should_rerun = False
 if "input_version" not in st.session_state:
     st.session_state.input_version = 0
+if "token_log" not in st.session_state:
+    st.session_state.token_log = []
 
 # 🧠 Input box with dynamic key
 input_key = f"query_input_{st.session_state.input_version}"
@@ -86,20 +88,11 @@ if st.session_state.should_rerun:
 else:
     query = user_input.strip()
 
-# 🧠 Fuzzy override matcher
-def is_time_override(q):
-    q = q.lower()
-    return any(phrase in q for phrase in [
-        "#what time is it", "#what's the time", "#what is my time",
-        "#tell me the time", "#current time", "#time now"
-    ])
-
-def is_weather_override(q):
-    q = q.lower()
-    return any(phrase in q for phrase in [
-        "#what is my weather like", "#what's the weather", "#weather now",
-        "#current weather", "#how's the weather", "#weather in my area"
-    ])
+# 🧠 Override matchers
+def is_time_override(q): return q.lower() in ["#what time is it", "#what's the time", "#what is my time", "#tell me the time", "#current time", "#time now"]
+def is_weather_override(q): return "weather" in q.lower()
+def is_cost_today(q): return q.lower().strip() in ["#what is today's cost", "#today's cost", "#cost today"]
+def is_cost_total(q): return q.lower().strip() in ["#what is the total cost", "#total cost", "#how many tokens used"]
 
 # ⏱️ Override: time
 def get_current_time():
@@ -145,12 +138,22 @@ if query:
         else:
             new_response = f"**You asked:** {query}\n\n🌍 Location not available. Please try again later.\n\n"
 
+    elif is_cost_today(query):
+        today = datetime.now().date()
+        today_tokens = sum(entry["tokens"] for entry in st.session_state.token_log if datetime.fromisoformat(entry["timestamp"]).date() == today)
+        cost = today_tokens / 1000 * 0.01
+        new_response = f"**You asked:** {query}\n\nPhilBot says: Today's cost is {today_tokens} tokens, approximately ${cost:.4f}\n\n"
+
+    elif is_cost_total(query):
+        total_tokens = sum(entry["tokens"] for entry in st.session_state.token_log)
+        cost = total_tokens / 1000 * 0.01
+        new_response = f"**You asked:** {query}\n\nPhilBot says: Total cost is {total_tokens} tokens, approximately ${cost:.4f}\n\n"
+
     else:
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
-                # Build conversation history for context
                 messages = [{"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."}]
-                for entry in st.session_state.response_log[:5]:  # last 5 exchanges
+                for entry in st.session_state.response_log[:5]:
                     messages.append({"role": "assistant", "content": entry})
                 messages.append({"role": "user", "content": query})
 
@@ -161,19 +164,20 @@ if query:
                     max_tokens=500
                 )
                 gpt_response = completion.choices[0].message.content
+                tokens_used = completion.usage.total_tokens
+                st.session_state.token_log.append({
+                    "query": query,
+                    "tokens": tokens_used,
+                    "timestamp": datetime.now().isoformat()
+                })
                 new_response = f"**You asked:** {query}\n\nPhilBot says: {gpt_response}\n\n"
-                # new_response += "PhilBot is ready for your next question 🔍\n\n"  # commented out for now
             except Exception as e:
                 new_response = f"**You asked:** {query}\n\nPhilBot says: GPT-4o failed: {str(e)}\n\n"
 
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
             fallback_query = query
-            params = {
-                "q": fallback_query,
-                "api_key": SERPAPI_KEY,
-                "engine": "google",
-            }
+            params = {"q": fallback_query, "api_key": SERPAPI_KEY, "engine": "google"}
             response = requests.get("https://serpapi.com/search", params=params)
             data = response.json()
             if "organic_results" in data:
@@ -190,19 +194,7 @@ if query:
     st.session_state.should_rerun = True
     st.rerun()
 
-# 🖋️ Display responses (latest first)
+# 🖋️ Display responses
 for entry in st.session_state.response_log:
     st.markdown('<div class="response-box">', unsafe_allow_html=True)
-    st.markdown(entry, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# 📊 Show SerpAPI usage only if fallback was used
-if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
-    usage_response = requests.get("https://serpapi.com/account", params={"api_key": SERPAPI_KEY})
-    if usage_response.status_code == 200:
-        usage_data = usage_response.json()
-        searches_left = usage_data.get("plan_searches_left", "N/A")
-        st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
-
-# 🧾 Footer
-st.markdown('<div class="footer">Development version 1.028 🍀</div>', unsafe_allow_html=True)
+    st.markdown(entry, unsafe_allow_html=True
