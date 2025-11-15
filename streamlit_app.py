@@ -148,19 +148,23 @@ if query:
     else:
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
+                # Build conversation history for context
+                messages = [{"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."}]
+                for entry in st.session_state.response_log[:5]:  # last 5 exchanges
+                    messages.append({"role": "assistant", "content": entry})
+                messages.append({"role": "user", "content": query})
+
                 completion = client.chat.completions.create(
                     model=AZURE_OPENAI_DEPLOYMENT,
-                    messages=[
-                        {"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."},
-                        {"role": "user", "content": query}
-                    ],
+                    messages=messages,
                     temperature=0.7,
                     max_tokens=500
                 )
                 gpt_response = completion.choices[0].message.content
-                new_response = f"**You asked:** {query}\n\nThis is a gpt-4o response: {gpt_response}\n\nPhilBot is ready for your next question 🔍\n\n"
+                new_response = f"**You asked:** {query}\n\nPhilBot says: {gpt_response}\n\n"
+                # new_response += "PhilBot is ready for your next question 🔍\n\n"  # commented out for now
             except Exception as e:
-                new_response = f"**You asked:** {query}\n\nGPT-4o failed: {str(e)}\n\n"
+                new_response = f"**You asked:** {query}\n\nPhilBot says: GPT-4o failed: {str(e)}\n\n"
 
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
@@ -173,13 +177,12 @@ if query:
             response = requests.get("https://serpapi.com/search", params=params)
             data = response.json()
             if "organic_results" in data:
-                fallback_response = f"**You asked:** {fallback_query}\n\nThis is a SERPAPI response:\n\n"
+                fallback_response = f"**You asked:** {fallback_query}\n\nPhilBot says (via SERPAPI):\n\n"
                 for result in data["organic_results"][:3]:
                     fallback_response += f"- [{result['title']}]({result['link']})\n"
-                fallback_response += "\nPhilBot is ready for your next question 🔍\n\n"
                 new_response = fallback_response
             else:
-                new_response = f"**You asked:** {fallback_query}\n\nNo results found or API limit reached.\n\n"
+                new_response = f"**You asked:** {fallback_query}\n\nPhilBot says: No results found or API limit reached.\n\n"
 
     st.session_state.response_log.insert(0, new_response)
     st.session_state.used_serpapi = used_serpapi
@@ -202,4 +205,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer
-st.markdown('<div class="footer">Development version 1.027 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.028 🍀</div>', unsafe_allow_html=True)
