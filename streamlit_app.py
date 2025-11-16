@@ -263,4 +263,4 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
 # 🧾 Footer (version 1.030)
-st.markdown('<div class="footer">Development version 1.030 🍀</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Development version 1.030b 🍀</div>', unsafe_allow_html=True)
