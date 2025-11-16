@@ -42,11 +42,18 @@ input:focus {
     color: #f8f8f2 !important;
     padding: 1em;
     border-radius: 8px;
-    max-height: 500px;
-    overflow-y: auto;
     white-space: pre-wrap;
     font-size: 1.1em;
     line-height: 1.7em;
+    margin-bottom: 0.75em;
+}
+.scroll-box {
+    max-height: 420px;   /* fixed height for scroll */
+    overflow-y: auto;    /* enable vertical scrolling */
+    border: 2px solid #444;
+    padding: 1em;
+    border-radius: 8px;
+    background-color: #001a33;
 }
 .searches-left {
     color: #ffff00 !important;
@@ -161,7 +168,6 @@ if query:
             for entry in st.session_state.token_log
             if datetime.fromisoformat(entry["timestamp"]).date() == today
         )
-        # Simplified flat rate for estimate (adjust if you want input/output splits)
         cost = today_tokens / 1000 * 0.01
         new_response = f"**You asked:** {query}\n\nPhilBot says: Today's cost is {today_tokens} tokens, approximately ${cost:.4f}\n\n"
 
@@ -197,11 +203,10 @@ if query:
                     })
 
                 new_response = f"**You asked:** {query}\n\nPhilBot says: {gpt_response}\n\n"
-                # new_response += "PhilBot is ready for your next question 🔍\n\n"  # commented out for now
             except Exception as e:
                 new_response = f"**You asked:** {query}\n\nPhilBot says: GPT-4o failed: {str(e)}\n\n"
 
-        # Fallback SERPAPI (kept identical in spirit to v28)
+        # Fallback SERPAPI (kept identical in spirit to v28/v29)
         if not new_response and SERPAPI_KEY:
             used_serpapi = True
             fallback_query = query
@@ -227,11 +232,13 @@ if query:
     st.session_state.should_rerun = True
     st.rerun()
 
-# 🖋️ Display responses (latest first)
+# 🖋️ Display responses in a single scrollable container (latest first)
+st.markdown("<div class='scroll-box'>", unsafe_allow_html=True)
 for entry in st.session_state.response_log:
     st.markdown('<div class="response-box">', unsafe_allow_html=True)
     st.markdown(entry, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # 📊 Show SerpAPI usage only if fallback was used
 if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
@@ -241,5 +248,5 @@ if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
         searches_left = usage_data.get("plan_searches_left", "N/A")
         st.markdown(f"<div class='searches-left'>🔢 Searches left this month: {searches_left}</div>", unsafe_allow_html=True)
 
-# 🧾 Footer
-st.markdown('<div class="footer">Development version 1.029 🍀</div>', unsafe_allow_html=True)
+# 🧾 Footer (version 1.030)
+st.markdown('<div class="footer">Development version 1.030 🍀</div>', unsafe_allow_html=True)
