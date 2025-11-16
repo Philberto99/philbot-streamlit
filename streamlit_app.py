@@ -23,13 +23,16 @@ client = AzureOpenAI(
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
 html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
     background-color: #001f3f !important;
 }
+
 h1 {
     font-family: 'Orbitron', sans-serif;
     color: #f5f5dc !important;
 }
+
 input {
     border: 2px solid #dddddd !important;
     transition: border-color 0.3s ease;
@@ -37,30 +40,47 @@ input {
 input:focus {
     border: 2px solid yellow !important;
 }
-.response-box {
-    background-color: transparent !important;
-    color: #f8f8f2 !important;
-    padding: 1em;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    font-size: 1.1em;
-    line-height: 1.7em;
-    margin-bottom: 0.75em;
-}
+
+/* Chat log wrapper: expands until max-height, then scrolls */
 .scroll-box {
-    max-height: 420px;   /* fixed height for scroll */
-    overflow-y: auto;    /* enable vertical scrolling */
+    height: auto;          /* grow naturally */
+    max-height: 70vh;      /* cap at viewport height */
+    overflow-y: auto;      /* scroll when full */
     border: 2px solid #444;
-    padding: 1em;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 12px;
     background-color: #001a33;
 }
+
+/* Individual responses */
+.response {
+    background-color: transparent;
+    color: #f8f8f2;
+    padding: 0.75em 0.5em;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    white-space: pre-wrap;
+    font-size: 1.05em;
+    line-height: 1.7em;
+}
+.response:last-child {
+    border-bottom: none;
+}
+
+/* Optional labels for clarity */
+.response .label {
+    color: #87cefa;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.35em;
+}
+
 .searches-left {
     color: #ffff00 !important;
     font-weight: bold;
     font-size: 1.1em;
     margin-top: 1em;
 }
+
 .footer {
     text-align: center;
     font-size: 0.9em;
@@ -232,13 +252,13 @@ if query:
     st.session_state.should_rerun = True
     st.rerun()
 
-# 🖋️ Display responses in a single scrollable container (latest first)
-st.markdown("<div class='scroll-box'>", unsafe_allow_html=True)
+# 🖋️ Display responses in a single expanding, scrollable container (latest first)
+entries_html = ["<div class='scroll-box'>"]
 for entry in st.session_state.response_log:
-    st.markdown('<div class="response-box">', unsafe_allow_html=True)
-    st.markdown(entry, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+    # Wrap each entry neatly; label for readability
+    entries_html.append(f"<div class='response'><span class='label'>PhilBot response</span>{entry}</div>")
+entries_html.append("</div>")
+st.markdown("".join(entries_html), unsafe_allow_html=True)
 
 # 📊 Show SerpAPI usage only if fallback was used
 if st.session_state.get("used_serpapi", False) and SERPAPI_KEY:
