@@ -41,18 +41,16 @@ input:focus {
     border: 2px solid yellow !important;
 }
 
-/* Chat log wrapper: expands until max-height, then scrolls */
 .scroll-box {
-    height: auto;          /* grow naturally */
-    max-height: 70vh;      /* cap at viewport height */
-    overflow-y: auto;      /* scroll when full */
+    max-height: 70vh;
+    overflow-y: auto;
     border: 2px solid #444;
     padding: 16px;
     border-radius: 12px;
     background-color: #001a33;
+    margin-bottom: 1em;
 }
 
-/* Individual responses */
 .response {
     background-color: transparent;
     color: #f8f8f2;
@@ -66,7 +64,6 @@ input:focus {
     border-bottom: none;
 }
 
-/* Optional labels for clarity */
 .response .label {
     color: #87cefa;
     font-weight: 600;
@@ -101,7 +98,6 @@ if "should_rerun" not in st.session_state:
     st.session_state.should_rerun = False
 if "input_version" not in st.session_state:
     st.session_state.input_version = 0
-# Token log for cost overrides
 if "token_log" not in st.session_state:
     st.session_state.token_log = []
 
@@ -116,7 +112,7 @@ if st.session_state.should_rerun:
 else:
     query = user_input.strip()
 
-# 🧠 Fuzzy override matcher
+# 🧠 Override matchers
 def is_time_override(q):
     q = q.lower()
     return any(phrase in q for phrase in [
@@ -199,9 +195,8 @@ if query:
     else:
         if AZURE_OPENAI_KEY and AZURE_OPENAI_DEPLOYMENT:
             try:
-                # Build conversation history for context
                 messages = [{"role": "system", "content": "You are PhilAIbot, a semantic assistant built by Phil."}]
-                for entry in st.session_state.response_log[:5]:  # last 5 exchanges
+                for entry in st.session_state.response_log[:5]:
                     messages.append({"role": "assistant", "content": entry})
                 messages.append({"role": "user", "content": query})
 
@@ -213,7 +208,6 @@ if query:
                 )
                 gpt_response = completion.choices[0].message.content
 
-                # Log token usage for cost tracking
                 if hasattr(completion, "usage") and completion.usage:
                     tokens_used = completion.usage.total_tokens
                     st.session_state.token_log.append({
@@ -256,7 +250,7 @@ if query:
 entries_html = ["<div class='scroll-box'>"]
 for entry in st.session_state.response_log:
     # Wrap each entry neatly; label for readability
-    entries_html.append(f"<div class='response'><span class='label'>PhilBot response</span>{entry}</div>")
+    entries_html.append(f"<div class='response'><span class='label'>PhilBot says:</span>{entry}</div>")
 entries_html.append("</div>")
 st.markdown("".join(entries_html), unsafe_allow_html=True)
 
